@@ -24,7 +24,7 @@ app.post("/login", (req, res) => {
       if (err) {
         console.log(err);
       }
-      if (result) {
+      if (result.length) {
         let token = jwt.sign(
           { username: username, iat: Math.floor(Date.now() / 1000) - 60 * 30 },
           "secret",
@@ -35,7 +35,8 @@ app.post("/login", (req, res) => {
           "secret",
           { expiresIn: 14400 }
         );
-        res.send({ token, refreshToken });
+        const user = { id: result[0].id, username: result[0].username };
+        res.send({ token, refreshToken, user });
       }
     }
   );
@@ -126,7 +127,7 @@ app.delete("/delete/:id", (req, res) => {
   });
 });
 // ben username
-
+// getPost by category_id
 app.get("/getPost/:id", (req, res) => {
   const id = req.params.id;
   db.query("SELECT * FROM post WHERE category_id =?", [id], (err, result) => {
@@ -139,6 +140,7 @@ app.get("/getPost/:id", (req, res) => {
   });
 });
 
+// get All Post
 app.get("/getPost", (req, res) => {
   const id = req.params.id;
   db.query("SELECT * FROM post", (err, result) => {
@@ -159,6 +161,89 @@ app.get("/getPostDetail/:id", (req, res) => {
     }
     if (result) {
       res.send(result[0]);
+    }
+  });
+});
+// get comment detail
+app.get("/comment/:id", (req, res) => {
+  const id = req.params.id;
+  db.query(
+    "SELECT comments.id, content, post_id, reg_date, username, user_id FROM comments INNER JOIN user ON comments.user_id = user.id WHERE post_id=?",
+    [id],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      }
+      if (result) {
+        res.send(result);
+      }
+    }
+  );
+});
+
+app.post("/comment/add", (req, res) => {
+  const post_id = req.body.post_id;
+  const user_id = req.body.user_id;
+  const content = req.body.content;
+  db.query(
+    "INSERT INTO comments (post_id, user_id, content) VALUES (?,?,?)",
+    [post_id, user_id, content],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      }
+      if (result) {
+        res.send("add comment success");
+      }
+    }
+  );
+});
+
+app.delete("/comment/delete/:id", (req, res) => {
+  const id = req.params.id;
+  db.query("DELETE FROM comments WHERE id=?", [id], (err, result) => {
+    if (err) {
+      console.log(err);
+    }
+    if (result) {
+      res.send("delete comment success");
+    }
+  });
+});
+
+// about
+
+app.get("/about", (req, res) => {
+  db.query("SELECT * FROM about", (err, result) => {
+    if (err) {
+      console.log(err);
+    }
+    if (result) {
+      res.send(result[0]);
+    }
+  });
+});
+// manager user
+
+app.get("/manager/user", (req, res) => {
+  db.query("SELECT * FROM user ", (err, result) => {
+    if (err) {
+      console.log(err);
+    }
+    if (result) {
+      res.send(result);
+    }
+  });
+});
+
+app.delete("/manager/user/:id", (req, res) => {
+  const id = req.params.id;
+  db.query("DELETE FROM user WHERE id=?", [id], (err, result) => {
+    if (err) {
+      console.log(err);
+    }
+    if (result) {
+      res.send("delete user success");
     }
   });
 });
