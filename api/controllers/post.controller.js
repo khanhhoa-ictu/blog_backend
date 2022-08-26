@@ -2,7 +2,7 @@ import { db } from "../../index.js";
 
 export const getPostByCategory = (req, res) => {
   const { category, page } = req.body;
-
+  const pageSize = 10;
   db.query(
     "SELECT * FROM post WHERE category_id =?",
     [category],
@@ -11,7 +11,11 @@ export const getPostByCategory = (req, res) => {
         console.log(err);
       }
       if (result) {
-        res.send(result);
+        const data = {
+          total: result.length,
+          post: result.slice(pageSize * page - pageSize, pageSize * page),
+        };
+        res.send(data);
       }
     }
   );
