@@ -78,5 +78,49 @@ export const profile = (req, res) => {
   const authHeader = req.headers.authorization;
   const token = authHeader.split(" ")[1];
   const user = jwt.verify(token, "secret");
-  res.send(user);
+  db.query(
+    "SELECT * FROM user WHERE username=?",
+    [user.username],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      } else {
+        res.send(result[0]);
+      }
+    }
+  );
+};
+
+export const about = (req, res) => {
+  const { about, id } = req.body;
+  db.query(
+    "UPDATE user SET about = ? WHERE id=?",
+    [about, id],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      }
+      if (result) {
+        console.log(result);
+        res.send("update success");
+      }
+    }
+  );
+};
+
+export const detail = (req, res) => {
+  const { username, email, address, id } = req.body;
+  db.query(
+    "UPDATE user SET  email = ?, address = ? WHERE id=?",
+    [email, address, id],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      }
+      if (result) {
+        console.log(result);
+        res.send("update success");
+      }
+    }
+  );
 };
