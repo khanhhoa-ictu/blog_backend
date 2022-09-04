@@ -1,5 +1,25 @@
-import { db } from "./../../index.js";
+import cloudinary from 'cloudinary';
 import jwt from "jsonwebtoken";
+import { db } from "./../../index.js";
+cloudinary.config({
+    cloud_name: 'smile159',
+    api_key: '678772438397898',
+    api_secret: 'zvdEWEfrF38a2dLOtVp-3BulMno'
+});
+
+const uploadImg = async (path) => {
+  let res
+  try {
+      res = await cloudinary.uploader.upload(path)
+  }
+  catch(err) {
+      console.log(err)
+      return false
+  }
+  return res.secure_url
+}
+
+
 export const register = async (req, res) => {
   if (
     typeof req.body.username === "undefined" ||
@@ -118,9 +138,35 @@ export const detail = (req, res) => {
         console.log(err);
       }
       if (result) {
-        console.log(result);
         res.send("update success");
       }
     }
   );
 };
+
+export const avatar = async(req, res) => {
+  let urlImg = null;
+
+  if(typeof req.file !== 'undefined' ) {
+      urlImg = await uploadImg(req.file.path)
+  }
+  if(urlImg !== null) {
+      if(urlImg === false) {
+          res.status(500).json({msg: 'server error'});
+          return;
+      }
+  }
+  const authHeader = req.headers.authorization;
+  const token = authHeader.split(" ")[1];
+  const user = jwt.verify(token, "secret");
+  db.query("UPDATE user SET avatar = ? WHERE username = ?",
+  [urlImg,user.username],
+  (err, result) => {
+    if (err) {
+      console.log(err);
+    }
+    if (result) {
+      res.send("update success");
+    }
+  })
+}

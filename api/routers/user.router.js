@@ -6,7 +6,17 @@ import {
   profile,
   about,
   detail,
+  avatar
 } from "../controllers/user.controller.js";
+import multer from 'multer'
+const storage = multer.diskStorage({
+  destination: './files',
+  filename(req, file, cb) {
+      cb(null, `${Date.now()}-${file.originalname}`);
+    },
+});
+const upload = multer({ storage });
+
 const router = express.Router();
 
 router.post("/login", login);
@@ -15,4 +25,5 @@ router.post("/refreshToken", refreshToken);
 router.get("/user/profile", profile);
 router.put("/profile/about", about);
 router.put("/profile/detail", detail);
+router.put("/profile/avatar",upload.single('file'), avatar );
 export default router;
