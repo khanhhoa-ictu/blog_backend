@@ -1,8 +1,8 @@
 import cloudinary from "cloudinary";
 import jwt from "jsonwebtoken";
 import { db } from "./../../index.js";
-import otp from "../utils/otp";
-import nodemailer from "../utils/nodemailer";
+import { generateOTP } from "./../utils/opt.js";
+import { sendEmailForgotPassword } from "../utils/nodemailer.js";
 
 cloudinary.config({
   cloud_name: "smile159",
@@ -192,8 +192,8 @@ export const requestForgotPassword = async (req, res) => {
   if (userFind == null) {
     res.status(422).json({ msg: "Invalid data" });
   }
-  let token = otp.generateOTP();
-  let sendEmail = await nodemailer.sendEmailForgotPassword(email, token);
+  let token = generateOTP();
+  let sendEmail = await sendEmailForgotPassword(email, token);
   if (!sendEmail) {
     res.status(500).json({ msg: "Send email fail" });
     return;
@@ -208,74 +208,74 @@ export const requestForgotPassword = async (req, res) => {
   res.status(201).json({ msg: "success", email: email });
 };
 
-export const verifyForgotPassword = (req, res) => {
-  if (
-    typeof req.body.email === "undefined" ||
-    typeof req.body.otp === "undefined"
-  ) {
-    res.status(402).json({ msg: "Invalid data" });
-    return;
-  }
+// export const verifyForgotPassword = (req, res) => {
+//   if (
+//     typeof req.body.email === "undefined" ||
+//     typeof req.body.otp === "undefined"
+//   ) {
+//     res.status(402).json({ msg: "Invalid data" });
+//     return;
+//   }
 
-  let { email, otp } = req.body;
-  let userFind = null;
+//   let { email, otp } = req.body;
+//   let userFind = null;
 
-  db.query("select * from users where email=?", [email], (err, result) => {
-    if (err) {
-      console.log(err);
-    }
-    if (result) {
-      userFind = result;
-    }
-  });
-  if (userFind == null) {
-    res.status(422).json({ msg: "Invalid data" });
-    return;
-  }
-  if (userFind.token != otp) {
-    res.status(422).json({ msg: "OTP fail" });
-    return;
-  }
-  res.status(200).json({ msg: "success", otp: otp });
-};
+//   db.query("select * from users where email=?", [email], (err, result) => {
+//     if (err) {
+//       console.log(err);
+//     }
+//     if (result) {
+//       userFind = result;
+//     }
+//   });
+//   if (userFind == null) {
+//     res.status(422).json({ msg: "Invalid data" });
+//     return;
+//   }
+//   if (userFind.token != otp) {
+//     res.status(422).json({ msg: "OTP fail" });
+//     return;
+//   }
+//   res.status(200).json({ msg: "success", otp: otp });
+// };
 
-export const forgotPassword = async (req, res) => {
-  if (
-    typeof req.body.email === "undefined" ||
-    typeof req.body.otp === "undefined" ||
-    typeof req.body.newPassword === "undefined"
-  ) {
-    res.status(402).json({ msg: "Invalid data" });
-    return;
-  }
-  let { email, otp, newPassword } = req.body;
-  let userFind = null;
+// export const forgotPassword = async (req, res) => {
+//   if (
+//     typeof req.body.email === "undefined" ||
+//     typeof req.body.otp === "undefined" ||
+//     typeof req.body.newPassword === "undefined"
+//   ) {
+//     res.status(402).json({ msg: "Invalid data" });
+//     return;
+//   }
+//   let { email, otp, newPassword } = req.body;
+//   let userFind = null;
 
-  db.query("select * from users where email=?", [email], (err, result) => {
-    if (err) {
-      console.log(err);
-    }
-    if (result) {
-      userFind = result;
-    }
-  });
+//   db.query("select * from users where email=?", [email], (err, result) => {
+//     if (err) {
+//       console.log(err);
+//     }
+//     if (result) {
+//       userFind = result;
+//     }
+//   });
 
-  if (userFind == null) {
-    res.status(422).json({ msg: "Invalid data" });
-    return;
-  }
-  if (userFind.token != otp) {
-    res.status(422).json({ msg: "OTP fail" });
-    return;
-  }
+//   if (userFind == null) {
+//     res.status(422).json({ msg: "Invalid data" });
+//     return;
+//   }
+//   if (userFind.token != otp) {
+//     res.status(422).json({ msg: "OTP fail" });
+//     return;
+//   }
 
-  (userFind.password = newPassword), 10;
-  try {
-    await userFind.save();
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ msg: err });
-    return;
-  }
-  res.status(201).json({ msg: "success" });
-};
+//   (userFind.password = newPassword), 10;
+//   try {
+//     await userFind.save();
+//   } catch (err) {
+//     console.log(err);
+//     res.status(500).json({ msg: err });
+//     return;
+//   }
+//   res.status(201).json({ msg: "success" });
+// };

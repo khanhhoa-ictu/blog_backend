@@ -12,7 +12,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-exports.sendEmailForgotPassword = async (email, token) => {
+export const sendEmailForgotPassword = async (email, token) => {
   let mailOptions = {
     from: '"Margetsni 👻" <khanhhoatest@gmail.com>', // sender address
     to: email, // list of receivers
