@@ -6,14 +6,17 @@ import {
   profile,
   about,
   detail,
-  avatar
+  avatar,
+  requestForgotPassword,
+  verifyForgotPassword,
+  forgotPassword,
 } from "../controllers/user.controller.js";
-import multer from 'multer'
+import multer from "multer";
 const storage = multer.diskStorage({
-  destination: './files',
+  destination: "./files",
   filename(req, file, cb) {
-      cb(null, `${Date.now()}-${file.originalname}`);
-    },
+    cb(null, `${Date.now()}-${file.originalname}`);
+  },
 });
 const upload = multer({ storage });
 
@@ -25,5 +28,10 @@ router.post("/refreshToken", refreshToken);
 router.get("/user/profile", profile);
 router.put("/profile/about", about);
 router.put("/profile/detail", detail);
-router.put("/profile/avatar",upload.single('file'), avatar );
+router.put("/profile/avatar", upload.single("file"), avatar);
+router.put("/forgot/request", requestForgotPassword);
+router.post("/forgot/request", requestForgotPassword);
+router.post("/forgot/verify", verifyForgotPassword);
+router.post("/forgot/password", forgotPassword);
+
 export default router;

@@ -1,24 +1,25 @@
-import cloudinary from 'cloudinary';
+import cloudinary from "cloudinary";
 import jwt from "jsonwebtoken";
 import { db } from "./../../index.js";
+import otp from "../utils/otp";
+import nodemailer from "../utils/nodemailer";
+
 cloudinary.config({
-    cloud_name: 'smile159',
-    api_key: '678772438397898',
-    api_secret: 'zvdEWEfrF38a2dLOtVp-3BulMno'
+  cloud_name: "smile159",
+  api_key: "678772438397898",
+  api_secret: "zvdEWEfrF38a2dLOtVp-3BulMno",
 });
 
 const uploadImg = async (path) => {
-  let res
+  let res;
   try {
-      res = await cloudinary.uploader.upload(path)
+    res = await cloudinary.uploader.upload(path);
+  } catch (err) {
+    console.log(err);
+    return false;
   }
-  catch(err) {
-      console.log(err)
-      return false
-  }
-  return res.secure_url
-}
-
+  return res.secure_url;
+};
 
 export const register = async (req, res) => {
   if (
@@ -144,29 +145,137 @@ export const detail = (req, res) => {
   );
 };
 
-export const avatar = async(req, res) => {
+export const avatar = async (req, res) => {
   let urlImg = null;
 
-  if(typeof req.file !== 'undefined' ) {
-      urlImg = await uploadImg(req.file.path)
+  if (typeof req.file !== "undefined") {
+    urlImg = await uploadImg(req.file.path);
   }
-  if(urlImg !== null) {
-      if(urlImg === false) {
-          res.status(500).json({msg: 'server error'});
-          return;
-      }
+  if (urlImg !== null) {
+    if (urlImg === false) {
+      res.status(500).json({ msg: "server error" });
+      return;
+    }
   }
   const authHeader = req.headers.authorization;
   const token = authHeader.split(" ")[1];
   const user = jwt.verify(token, "secret");
-  db.query("UPDATE user SET avatar = ? WHERE username = ?",
-  [urlImg,user.username],
-  (err, result) => {
+  db.query(
+    "UPDATE user SET avatar = ? WHERE username = ?",
+    [urlImg, user.username],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      }
+      if (result) {
+        res.send("update success");
+      }
+    }
+  );
+};
+export const requestForgotPassword = async (req, res) => {
+  if (typeof req.params.email === "undefined") {
+    res.json({ msg: "Invalid data" });
+    return;
+  }
+  let email = req.params.email;
+  let userFind = null;
+
+  db.query("select * from users where email=?", [email], (err, result) => {
     if (err) {
       console.log(err);
     }
     if (result) {
-      res.send("update success");
+      userFind = result;
     }
-  })
-}
+  });
+  if (userFind == null) {
+    res.status(422).json({ msg: "Invalid data" });
+  }
+  let token = otp.generateOTP();
+  let sendEmail = await nodemailer.sendEmailForgotPassword(email, token);
+  if (!sendEmail) {
+    res.status(500).json({ msg: "Send email fail" });
+    return;
+  }
+  userFind.token = token;
+  try {
+    await userFind.save();
+  } catch (err) {
+    res.status(500).json({ msg: err });
+    return;
+  }
+  res.status(201).json({ msg: "success", email: email });
+};
+
+export const verifyForgotPassword = (req, res) => {
+  if (
+    typeof req.body.email === "undefined" ||
+    typeof req.body.otp === "undefined"
+  ) {
+    res.status(402).json({ msg: "Invalid data" });
+    return;
+  }
+
+  let { email, otp } = req.body;
+  let userFind = null;
+
+  db.query("select * from users where email=?", [email], (err, result) => {
+    if (err) {
+      console.log(err);
+    }
+    if (result) {
+      userFind = result;
+    }
+  });
+  if (userFind == null) {
+    res.status(422).json({ msg: "Invalid data" });
+    return;
+  }
+  if (userFind.token != otp) {
+    res.status(422).json({ msg: "OTP fail" });
+    return;
+  }
+  res.status(200).json({ msg: "success", otp: otp });
+};
+
+export const forgotPassword = async (req, res) => {
+  if (
+    typeof req.body.email === "undefined" ||
+    typeof req.body.otp === "undefined" ||
+    typeof req.body.newPassword === "undefined"
+  ) {
+    res.status(402).json({ msg: "Invalid data" });
+    return;
+  }
+  let { email, otp, newPassword } = req.body;
+  let userFind = null;
+
+  db.query("select * from users where email=?", [email], (err, result) => {
+    if (err) {
+      console.log(err);
+    }
+    if (result) {
+      userFind = result;
+    }
+  });
+
+  if (userFind == null) {
+    res.status(422).json({ msg: "Invalid data" });
+    return;
+  }
+  if (userFind.token != otp) {
+    res.status(422).json({ msg: "OTP fail" });
+    return;
+  }
+
+  (userFind.password = newPassword), 10;
+  try {
+    await userFind.save();
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ msg: err });
+    return;
+  }
+  res.status(201).json({ msg: "success" });
+};
