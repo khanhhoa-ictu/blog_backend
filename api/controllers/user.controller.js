@@ -54,6 +54,8 @@ export const register = async (req, res) => {
 export const login = (req, res) => {
   const { username, password } = req.body;
 
+  
+
   db.query(
     "SELECT * FROM user where username = ? and password = ?",
     [username, password],
@@ -174,108 +176,112 @@ export const avatar = async (req, res) => {
   );
 };
 export const requestForgotPassword = async (req, res) => {
-  if (typeof req.params.email === "undefined") {
+  if (typeof req.body.email === "undefined") {
     res.json({ msg: "Invalid data" });
     return;
   }
-  let email = req.params.email;
+  let email = req.body.email;
+  let userFind = null;
+  try {
+     db.query("select * from user where email=?", [email], async(err, result) => {
+      if (err) {
+        console.log(err);
+      }
+      if (result) {
+        userFind = result[0];
+        if (userFind === null) {
+          res.status(422).json({ msg: "Invalid data" });
+        }
+        let token = generateOTP();
+        let sendEmail = await sendEmailForgotPassword(email, token);
+        if (!sendEmail) {
+          res.status(500).json({ msg: "Send email fail" });
+          return;
+        }
+        db.query("UPDATE user SET tokenForgot = ? WHERE email = ?",[token, email],(err, result)=>{
+          if(err){
+            console.log(err);
+          }
+          if(result){
+            res.send("request success");
+          }
+        })
+       
+     
+      }
+    });
+  } catch (error) {
+    console.log(error);
+  }
+ 
+  
+};
+
+export const verifyForgotPassword = (req, res) => {
+  if (
+    typeof req.body.email === "undefined" ||
+    typeof req.body.otp === "undefined"
+  ) {
+    res.status(402).json({ msg: "Invalid data" });
+    return;
+  }
+
+  let { email, otp } = req.body;
   let userFind = null;
 
-  db.query("select * from users where email=?", [email], (err, result) => {
+  db.query("select * from user where email=?", [email], (err, result) => {
     if (err) {
       console.log(err);
     }
     if (result) {
-      userFind = result;
+      userFind = result[0];
+      console.log(userFind)
+
+      if (userFind == null) {
+        res.status(422).json({ msg: "Invalid data" });
+        return;
+      }
+
+      if (userFind.tokenForgot !== otp) {
+        res.status(422).json({ msg: "OTP fail" });
+        return;
+      }
+      res.status(200).json({ msg: "success", otp: otp });
     }
   });
-  if (userFind == null) {
-    res.status(422).json({ msg: "Invalid data" });
-  }
-  let token = generateOTP();
-  let sendEmail = await sendEmailForgotPassword(email, token);
-  if (!sendEmail) {
-    res.status(500).json({ msg: "Send email fail" });
-    return;
-  }
-  userFind.token = token;
-  try {
-    await userFind.save();
-  } catch (err) {
-    res.status(500).json({ msg: err });
-    return;
-  }
-  res.status(201).json({ msg: "success", email: email });
+
+
 };
 
-// export const verifyForgotPassword = (req, res) => {
-//   if (
-//     typeof req.body.email === "undefined" ||
-//     typeof req.body.otp === "undefined"
-//   ) {
-//     res.status(402).json({ msg: "Invalid data" });
-//     return;
-//   }
+export const forgotPassword = async (req, res) => {
+  if (
+    typeof req.body.newPassword === "undefined"
+  ) {
+    res.status(402).json({ msg: "Invalid data" });
+    return;
+  }
+  let { email, newPassword } = req.body;
+  let userFind = null;
 
-//   let { email, otp } = req.body;
-//   let userFind = null;
-
-//   db.query("select * from users where email=?", [email], (err, result) => {
-//     if (err) {
-//       console.log(err);
-//     }
-//     if (result) {
-//       userFind = result;
-//     }
-//   });
-//   if (userFind == null) {
-//     res.status(422).json({ msg: "Invalid data" });
-//     return;
-//   }
-//   if (userFind.token != otp) {
-//     res.status(422).json({ msg: "OTP fail" });
-//     return;
-//   }
-//   res.status(200).json({ msg: "success", otp: otp });
-// };
-
-// export const forgotPassword = async (req, res) => {
-//   if (
-//     typeof req.body.email === "undefined" ||
-//     typeof req.body.otp === "undefined" ||
-//     typeof req.body.newPassword === "undefined"
-//   ) {
-//     res.status(402).json({ msg: "Invalid data" });
-//     return;
-//   }
-//   let { email, otp, newPassword } = req.body;
-//   let userFind = null;
-
-//   db.query("select * from users where email=?", [email], (err, result) => {
-//     if (err) {
-//       console.log(err);
-//     }
-//     if (result) {
-//       userFind = result;
-//     }
-//   });
-
-//   if (userFind == null) {
-//     res.status(422).json({ msg: "Invalid data" });
-//     return;
-//   }
-//   if (userFind.token != otp) {
-//     res.status(422).json({ msg: "OTP fail" });
-//     return;
-//   }
-
-//   (userFind.password = newPassword), 10;
-//   try {
-//     await userFind.save();
-//   } catch (err) {
-//     console.log(err);
-//     res.status(500).json({ msg: err });
-//     return;
-//   }
-//   res.status(201).json({ msg: "success" });
-// };
+  db.query("select * from user where email=?", [email], (err, result) => {
+    if (err) {
+      console.log(err);
+    }
+    if (result) {
+      userFind = result[0];
+      if (userFind == null) {
+        res.status(422).json({ msg: "Invalid data" });
+        return;
+      }
+      db.query("update user set password=? where email=?",[newPassword,email],(err, result)=>{
+        if (err) {
+          console.log(err)
+        }
+        if(result) {
+          res.send('success')
+        }
+      })
+    }
+  });
+ 
+};

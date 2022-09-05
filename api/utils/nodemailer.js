@@ -4,7 +4,7 @@ const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: "khanhhoatest@gmail.com",
-    pass: "sax5101997",
+    pass: "jftqpmkogknrwout",
   },
   tls: {
     // do not fail on invalid certs
@@ -14,7 +14,7 @@ const transporter = nodemailer.createTransport({
 
 export const sendEmailForgotPassword = async (email, token) => {
   let mailOptions = {
-    from: '"Margetsni 👻" <khanhhoatest@gmail.com>', // sender address
+    from: '"Smile 👻" <khanhhoatest@gmail.com>', // sender address
     to: email, // list of receivers
     subject: "Forgot password Verification Token", // Subject line
     html:
