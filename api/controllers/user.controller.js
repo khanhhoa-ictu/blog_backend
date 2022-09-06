@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import { db } from "./../../index.js";
 import { generateOTP } from "./../utils/opt.js";
 import { sendEmailForgotPassword } from "../utils/nodemailer.js";
-
+import bcrypt from "bcrypt";
 cloudinary.config({
   cloud_name: "smile159",
   api_key: "678772438397898",
@@ -31,21 +31,37 @@ export const register = async (req, res) => {
     return;
   }
   let { username, password, confirm } = req.body;
-
   if (password !== confirm) {
     res.send("password does not match");
     return;
   }
-
+  password = bcrypt.hashSync(password, 10);
   db.query(
-    "INSERT INTO user (username, password) VALUES (?,?)",
-    [username, password],
+    "SELECT * FROM user WHERE username = ?",
+    [username],
     (err, result) => {
       if (err) {
         console.log(err);
       }
       if (result) {
-        res.send("register success");
+        let user = result[0];
+        if (!!user) {
+          res.status(422).json({ msg: "Tài khoản đã tồn tại" });
+          return;
+        }
+      }
+    }
+  );
+
+  db.query(
+    "INSERT INTO user (username, password) VALUES (?,?)",
+    [username, password, username],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      }
+      if (result) {
+        res.status(200).json({ msg: "đăng ký thành công" });
       }
     }
   );
@@ -54,16 +70,22 @@ export const register = async (req, res) => {
 export const login = (req, res) => {
   const { username, password } = req.body;
 
-  
-
   db.query(
-    "SELECT * FROM user where username = ? and password = ?",
-    [username, password],
+    "SELECT * FROM user where username = ?",
+    [username],
     (err, result) => {
       if (err) {
         console.log(err);
       }
       if (result.length) {
+        const user = { id: result[0].id, username: result[0].username };
+        if (!bcrypt.compareSync(password, result[0].password)) {
+          res
+            .status(422)
+            .json({ msg: "Tài khoản hoặc mật khẩu không chính xác" });
+          return;
+        }
+
         let token = jwt.sign(
           { username: username, iat: Math.floor(Date.now() / 1000) - 60 * 30 },
           "secret",
@@ -74,7 +96,6 @@ export const login = (req, res) => {
           "re-secret",
           { expiresIn: "10 days" }
         );
-        const user = { id: result[0].id, username: result[0].username };
         res.send({ token, refreshToken, user });
       }
     }
@@ -183,38 +204,42 @@ export const requestForgotPassword = async (req, res) => {
   let email = req.body.email;
   let userFind = null;
   try {
-     db.query("select * from user where email=?", [email], async(err, result) => {
-      if (err) {
-        console.log(err);
-      }
-      if (result) {
-        userFind = result[0];
-        if (userFind === null) {
-          res.status(422).json({ msg: "Invalid data" });
+    db.query(
+      "select * from user where email=?",
+      [email],
+      async (err, result) => {
+        if (err) {
+          console.log(err);
         }
-        let token = generateOTP();
-        let sendEmail = await sendEmailForgotPassword(email, token);
-        if (!sendEmail) {
-          res.status(500).json({ msg: "Send email fail" });
-          return;
+        if (result) {
+          userFind = result[0];
+          if (userFind === null) {
+            res.status(422).json({ msg: "Invalid data" });
+          }
+          let token = generateOTP();
+          let sendEmail = await sendEmailForgotPassword(email, token);
+          if (!sendEmail) {
+            res.status(500).json({ msg: "Send email fail" });
+            return;
+          }
+          db.query(
+            "UPDATE user SET tokenForgot = ? WHERE email = ?",
+            [token, email],
+            (err, result) => {
+              if (err) {
+                console.log(err);
+              }
+              if (result) {
+                res.send("request success");
+              }
+            }
+          );
         }
-        db.query("UPDATE user SET tokenForgot = ? WHERE email = ?",[token, email],(err, result)=>{
-          if(err){
-            console.log(err);
-          }
-          if(result){
-            res.send("request success");
-          }
-        })
-       
-     
       }
-    });
+    );
   } catch (error) {
     console.log(error);
   }
- 
-  
 };
 
 export const verifyForgotPassword = (req, res) => {
@@ -222,7 +247,7 @@ export const verifyForgotPassword = (req, res) => {
     typeof req.body.email === "undefined" ||
     typeof req.body.otp === "undefined"
   ) {
-    res.status(402).json({ msg: "Invalid data" });
+    res.status(402).json({ msg: "vui lòng nhập đủ dữ liệu" });
     return;
   }
 
@@ -235,29 +260,19 @@ export const verifyForgotPassword = (req, res) => {
     }
     if (result) {
       userFind = result[0];
-      console.log(userFind)
-
-      if (userFind == null) {
-        res.status(422).json({ msg: "Invalid data" });
-        return;
-      }
 
       if (userFind.tokenForgot !== otp) {
-        res.status(422).json({ msg: "OTP fail" });
+        res.status(422).json({ msg: "OTP không chính xác" });
         return;
       }
       res.status(200).json({ msg: "success", otp: otp });
     }
   });
-
-
 };
 
 export const forgotPassword = async (req, res) => {
-  if (
-    typeof req.body.newPassword === "undefined"
-  ) {
-    res.status(402).json({ msg: "Invalid data" });
+  if (typeof req.body.newPassword === "undefined") {
+    res.status(402).json({ msg: "vui lòng nhập đầy đủ dữ liệu" });
     return;
   }
   let { email, newPassword } = req.body;
@@ -269,19 +284,19 @@ export const forgotPassword = async (req, res) => {
     }
     if (result) {
       userFind = result[0];
-      if (userFind == null) {
-        res.status(422).json({ msg: "Invalid data" });
-        return;
-      }
-      db.query("update user set password=? where email=?",[newPassword,email],(err, result)=>{
-        if (err) {
-          console.log(err)
+
+      db.query(
+        "update user set password=? where email=?",
+        [newPassword, email],
+        (err, result) => {
+          if (err) {
+            console.log(err);
+          }
+          if (result) {
+            res.send("đổi mật khẩu thành công");
+          }
         }
-        if(result) {
-          res.send('success')
-        }
-      })
+      );
     }
   });
- 
 };
