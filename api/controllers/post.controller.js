@@ -4,7 +4,7 @@ export const getPostByCategory = (req, res) => {
   const { category, page } = req.body;
   const pageSize = 10;
   db.query(
-    "SELECT * FROM post WHERE category_id =?",
+    "SELECT * FROM post WHERE category_id =? ORDER BY reg_date DESC",
     [category],
     (err, result) => {
       if (err) {
@@ -24,7 +24,7 @@ export const getPostByCategory = (req, res) => {
 export const getListPost = (req, res) => {
   let { page } = req.body;
   const pageSize = 10;
-  db.query("SELECT * FROM post", (err, result) => {
+  db.query("SELECT * FROM post ORDER BY reg_date DESC", (err, result) => {
     if (err) {
       console.log(err);
     }

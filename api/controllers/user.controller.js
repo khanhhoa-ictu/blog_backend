@@ -52,10 +52,10 @@ export const register = async (req, res) => {
       }
     }
   );
-
+  const role = "user";
   db.query(
-    "INSERT INTO user (username, password) VALUES (?,?)",
-    [username, password, username],
+    "INSERT INTO user (username, password, role) VALUES (?,?)",
+    [username, password, role],
     (err, result) => {
       if (err) {
         console.log(err);
