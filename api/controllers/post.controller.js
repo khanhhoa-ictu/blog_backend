@@ -53,7 +53,7 @@ export const getPostDetail = (req, res) => {
 export const getCommentByPost = (req, res) => {
   const id = req.params.id;
   db.query(
-    "SELECT comments.id, content, post_id, reg_date, username, user_id FROM comments INNER JOIN user ON comments.user_id = user.id WHERE post_id=?",
+    "SELECT comments.id, content, post_id, reg_date, username, avatar, user_id FROM comments INNER JOIN user ON comments.user_id = user.id WHERE post_id=? ORDER BY reg_date DESC",
     [id],
     (err, result) => {
       if (err) {

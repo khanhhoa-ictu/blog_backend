@@ -27,12 +27,12 @@ export const register = async (req, res) => {
     typeof req.body.password === "undefined" ||
     typeof req.body.confirm === "undefined"
   ) {
-    res.status(422).json({ msg: "Invalid data" });
+    res.status(422).json({ msg: "dữ liệu không hợp lệ" });
     return;
   }
   let { username, password, confirm } = req.body;
   if (password !== confirm) {
-    res.send("password does not match");
+    res.status(422).json({ msg: "password không trùng hợp" });
     return;
   }
   password = bcrypt.hashSync(password, 10);
@@ -77,8 +77,14 @@ export const login = (req, res) => {
       if (err) {
         console.log(err);
       }
-      if (result.length) {
-        const user = { id: result[0].id, username: result[0].username };
+      if (result) {
+        const user = { id: result[0]?.id, username: result[0]?.username };
+        if (!user.id) {
+          res
+            .status(422)
+            .json({ msg: "Tài khoản hoặc mật khẩu không chính xác" });
+          return;
+        }
         if (!bcrypt.compareSync(password, result[0].password)) {
           res
             .status(422)
@@ -143,10 +149,10 @@ export const about = (req, res) => {
     (err, result) => {
       if (err) {
         console.log(err);
+        res.status(422).json("cập nhật thông tin thất bại");
       }
       if (result) {
-        console.log(result);
-        res.send("update success");
+        res.status(200).json("cập nhật thông tin thành công");
       }
     }
   );
@@ -160,9 +166,10 @@ export const detail = (req, res) => {
     (err, result) => {
       if (err) {
         console.log(err);
+        res.status(422).json("cập nhật thông tin thất bại");
       }
       if (result) {
-        res.send("update success");
+        res.status(200).json("cập nhật thông tin thành công");
       }
     }
   );
@@ -176,7 +183,7 @@ export const avatar = async (req, res) => {
   }
   if (urlImg !== null) {
     if (urlImg === false) {
-      res.status(500).json({ msg: "server error" });
+      res.status(500).json({ msg: "upload hình ảnh thất bại" });
       return;
     }
   }
@@ -191,7 +198,7 @@ export const avatar = async (req, res) => {
         console.log(err);
       }
       if (result) {
-        res.send("update success");
+        res.status(200).json("thay đổi ảnh đại diện thành công");
       }
     }
   );
@@ -293,7 +300,7 @@ export const forgotPassword = async (req, res) => {
             console.log(err);
           }
           if (result) {
-            res.send("đổi mật khẩu thành công");
+            res.status(200).json({ msg: "đổi mật khẩu thành công" });
           }
         }
       );
