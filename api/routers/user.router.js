@@ -10,6 +10,7 @@ import {
   requestForgotPassword,
   verifyForgotPassword,
   forgotPassword,
+  profileById,
 } from "../controllers/user.controller.js";
 import multer from "multer";
 const storage = multer.diskStorage({
@@ -26,6 +27,7 @@ router.post("/login", login);
 router.post("/register", register);
 router.post("/refreshToken", refreshToken);
 router.get("/user/profile", profile);
+router.get("/user/profileById/:id", profileById);
 router.put("/profile/about", about);
 router.put("/profile/detail", detail);
 router.put("/profile/avatar", upload.single("file"), avatar);

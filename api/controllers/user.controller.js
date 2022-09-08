@@ -309,3 +309,14 @@ export const forgotPassword = async (req, res) => {
     }
   });
 };
+
+export const profileById = (req, res) => {
+  const id = req.params.id;
+  db.query("SELECT * FROM user WHERE id=?", [id], (err, result) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.send(result[0]);
+    }
+  });
+};
