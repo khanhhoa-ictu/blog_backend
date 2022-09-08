@@ -46,6 +46,10 @@ export const getPostDetail = (req, res) => {
     }
     if (result) {
       const post = result[0];
+      if (!post) {
+        res.status(422).json("không tìm thấy bài viết hợp lệ");
+        return;
+      }
       db.query(
         "UPDATE post SET view = ? WHERE id = ?",
         [post.view + 1, post.id],
@@ -67,7 +71,9 @@ export const getPostDetailAdmin = (req, res) => {
   db.query("SELECT * FROM post WHERE id =?", [id], (err, result) => {
     if (err) {
       console.log(err);
+      res.status(422).json("không tìm thấy bài viết hợp lệ");
     }
+
     if (result) {
       const post = result[0];
       res.status(200).json(post);
@@ -111,6 +117,7 @@ export const deleteComment = (req, res) => {
   db.query("DELETE FROM comments WHERE id=?", [id], (err, result) => {
     if (err) {
       console.log(err);
+      res.status(422).json("không tìm thấy bài viết hợp lệ");
     }
     if (result) {
       res.send("delete comment success");
