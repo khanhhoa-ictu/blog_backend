@@ -45,11 +45,35 @@ export const getPostDetail = (req, res) => {
       console.log(err);
     }
     if (result) {
-      res.send(result[0]);
+      const post = result[0];
+      db.query(
+        "UPDATE post SET view = ? WHERE id = ?",
+        [post.view + 1, post.id],
+        (err, result) => {
+          if (err) {
+            console.log(err);
+          }
+          if (result) {
+            res.status(200).json(post);
+          }
+        }
+      );
     }
   });
 };
 
+export const getPostDetailAdmin = (req, res) => {
+  const id = req.params.id;
+  db.query("SELECT * FROM post WHERE id =?", [id], (err, result) => {
+    if (err) {
+      console.log(err);
+    }
+    if (result) {
+      const post = result[0];
+      res.status(200).json(post);
+    }
+  });
+};
 export const getCommentByPost = (req, res) => {
   const id = req.params.id;
   db.query(

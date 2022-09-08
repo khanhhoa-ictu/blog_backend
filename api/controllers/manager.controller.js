@@ -61,3 +61,20 @@ export const deleteUser = (req, res) => {
     }
   });
 };
+
+export const editPost = (req, res) => {
+  const { title, content, summary, thumbnail, category_id, id } = req.body;
+
+  db.query(
+    "UPDATE post SET title = ?, content = ?, summary = ?, thumbnail = ?, category_id = ? WHERE id = ?  ",
+    [title, content, summary, thumbnail, category_id, id],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      }
+      if (result) {
+        res.send("cập nhật bài viết thành công");
+      }
+    }
+  );
+};

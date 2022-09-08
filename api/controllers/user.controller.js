@@ -216,17 +216,19 @@ export const requestForgotPassword = async (req, res) => {
       [email],
       async (err, result) => {
         if (err) {
+          gm;
           console.log(err);
         }
         if (result) {
           userFind = result[0];
-          if (userFind === null) {
-            res.status(422).json({ msg: "Invalid data" });
+          if (!userFind) {
+            res.status(422).json({ msg: "không tìm thấy email" });
+            return;
           }
           let token = generateOTP();
           let sendEmail = await sendEmailForgotPassword(email, token);
           if (!sendEmail) {
-            res.status(500).json({ msg: "Send email fail" });
+            res.status(500).json({ msg: "gửi mail thất bại" });
             return;
           }
           db.query(
@@ -237,7 +239,7 @@ export const requestForgotPassword = async (req, res) => {
                 console.log(err);
               }
               if (result) {
-                res.send("request success");
+                res.status(200).json({ msg: "gửi mail thành công" });
               }
             }
           );
