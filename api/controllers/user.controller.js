@@ -54,7 +54,7 @@ export const register = async (req, res) => {
   );
   const role = "user";
   db.query(
-    "INSERT INTO user (username, password, role) VALUES (?,?)",
+    "INSERT INTO user (username, password, role) VALUES (?,?,?)",
     [username, password, role],
     (err, result) => {
       if (err) {
@@ -316,6 +316,17 @@ export const profileById = (req, res) => {
     if (err) {
       console.log(err);
     } else {
+      res.send(result[0]);
+    }
+  });
+};
+
+export const aboutAdmin = (req, res) => {
+  db.query("SELECT * FROM about", (err, result) => {
+    if (err) {
+      console.log(err);
+    }
+    if (result) {
       res.send(result[0]);
     }
   });

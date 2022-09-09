@@ -11,6 +11,7 @@ import {
   verifyForgotPassword,
   forgotPassword,
   profileById,
+  aboutAdmin,
 } from "../controllers/user.controller.js";
 import multer from "multer";
 const storage = multer.diskStorage({
@@ -34,5 +35,5 @@ router.put("/profile/avatar", upload.single("file"), avatar);
 router.post("/forgot/request", requestForgotPassword);
 router.post("/forgot/verify", verifyForgotPassword);
 router.post("/forgot/password", forgotPassword);
-
+router.get("/about", aboutAdmin);
 export default router;
