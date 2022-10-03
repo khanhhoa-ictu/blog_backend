@@ -10,9 +10,9 @@ import {
 } from "../controllers/post.controller.js";
 const router = express.Router();
 
-router.post("/getPost/category", getPostByCategory);
+router.get("/getPost/category/:category/:page", getPostByCategory);
 
-router.post("/getPost", getListPost);
+router.get("/getPost", getListPost);
 
 router.get("/getPostDetail/:id", getPostDetail);
 

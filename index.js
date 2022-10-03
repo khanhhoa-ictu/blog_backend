@@ -1,12 +1,10 @@
+import bodyParser from "body-parser";
 import cors from "cors";
 import express from "express";
 import mysql from "mysql2";
 import userManager from "./api/routers/manager.router.js";
-import userRouter from "./api/routers/user.router.js";
 import userPost from "./api/routers/post.router.js";
-import { avatar } from "./api/controllers/user.controller.js";
-import multer from "multer";
-import bodyParser from "body-parser";
+import userRouter from "./api/routers/user.router.js";
 
 const app = express();
 app.use(express.json());
@@ -30,7 +28,6 @@ export const db = mysql.createConnection({
 app.use(userRouter);
 app.use(userManager);
 app.use(userPost);
-
 app.listen(3002, () => {
-  console.log("run");
+  console.log("run", process.env.REACT_APP_API_DOMAIN);
 });

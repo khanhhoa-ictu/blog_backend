@@ -1,7 +1,7 @@
 import { db } from "../../index.js";
 
 export const getPostByCategory = (req, res) => {
-  const { category, page } = req.body;
+  const { category, page } = req.params;
   const pageSize = 10;
   db.query(
     "SELECT * FROM post WHERE category_id =? ORDER BY reg_date DESC",
