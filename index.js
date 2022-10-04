@@ -28,6 +28,6 @@ export const db = mysql.createConnection({
 app.use(userRouter);
 app.use(userManager);
 app.use(userPost);
-app.listen(3002, () => {
-  console.log("run", process.env.REACT_APP_API_DOMAIN);
+app.listen(8080, () => {
+  console.log("run");
 });
