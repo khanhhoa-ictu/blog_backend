@@ -22,7 +22,7 @@ export const getPostByCategory = (req, res) => {
 };
 
 export const getListPost = (req, res) => {
-  let { page } = req.body;
+  let { page } = req.params;
   const pageSize = 10;
   db.query("SELECT * FROM post ORDER BY reg_date DESC", (err, result) => {
     if (err) {

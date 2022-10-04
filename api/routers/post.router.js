@@ -12,7 +12,7 @@ const router = express.Router();
 
 router.get("/getPost/category/:category/:page", getPostByCategory);
 
-router.get("/getPost", getListPost);
+router.get("/getPost/:page", getListPost);
 
 router.get("/getPostDetail/:id", getPostDetail);
 
