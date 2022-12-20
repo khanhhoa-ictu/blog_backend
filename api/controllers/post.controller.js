@@ -85,11 +85,30 @@ export const getCommentByPost = (req, res) => {
   db.query(
     "SELECT comments.id, content, post_id, reg_date, username, avatar, user_id FROM comments INNER JOIN user ON comments.user_id = user.id WHERE post_id=? ORDER BY reg_date DESC",
     [id],
-    (err, result) => {
+    async (err, result) => {
       if (err) {
         console.log(err);
       }
       if (result) {
+        await Promise.all(
+          result.map(async (comment) => {
+            let results = await new Promise((resolve, reject) =>
+              db.query(
+                "SELECT reply.id, content, user_id, comment_id, reg_date, username, avatar FROM reply INNER JOIN user ON reply.user_id = user.id WHERE comment_id = ? ORDER BY reg_date DESC",
+                [comment.id],
+                (err, replyComment) => {
+                  if (err) {
+                    reject(err);
+                  } else {
+                    resolve(replyComment);
+                    comment.reply = replyComment;
+                  }
+                }
+              )
+            );
+            return result;
+          })
+        );
         res.send(result);
       }
     }
@@ -107,6 +126,22 @@ export const addComment = (req, res) => {
       }
       if (result) {
         res.send("add comment success");
+      }
+    }
+  );
+};
+
+export const addReply = (req, res) => {
+  const { content, comment_id, user_id } = req.body;
+  db.query(
+    "INSERT INTO reply (content, comment_id, user_id) VALUES (?,?,?)",
+    [content, comment_id, user_id],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      }
+      if (result) {
+        res.send("add reply success");
       }
     }
   );

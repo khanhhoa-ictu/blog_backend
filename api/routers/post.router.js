@@ -7,6 +7,7 @@ import {
   addComment,
   deleteComment,
   getPostDetailAdmin,
+  addReply,
 } from "../controllers/post.controller.js";
 const router = express.Router();
 
@@ -21,6 +22,8 @@ router.get("/postDetail/admin/:id", getPostDetailAdmin);
 router.get("/comment/:id", getCommentByPost);
 
 router.post("/comment/add", addComment);
+
+router.post("/reply/add", addReply);
 
 router.delete("/comment/delete/:id", deleteComment);
 
