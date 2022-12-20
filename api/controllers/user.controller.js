@@ -92,16 +92,12 @@ export const login = (req, res) => {
           return;
         }
 
-        let token = jwt.sign(
-          { username: username, iat: Math.floor(Date.now() / 1000) - 60 * 30 },
-          "secret",
-          { expiresIn: "1 days" }
-        );
-        let refreshToken = jwt.sign(
-          { username: username, iat: Math.floor(Date.now() / 1000) - 60 * 30 },
-          "re-secret",
-          { expiresIn: "10 days" }
-        );
+        let token = jwt.sign({ username: username }, "secret", {
+          expiresIn: "1 days",
+        });
+        let refreshToken = jwt.sign({ username: username }, "re-secret", {
+          expiresIn: "10 days",
+        });
         res.send({ token, refreshToken, user });
       }
     }
@@ -127,7 +123,14 @@ export const refreshToken = (req, res) => {
 export const profile = (req, res) => {
   const authHeader = req.headers.authorization;
   const token = authHeader.split(" ")[1];
-  const user = jwt.verify(token, "secret");
+  let user;
+  try {
+    user = jwt.verify(token, "secret");
+  } catch (error) {
+    res.status(401).json({ msg: "refetch token" });
+    return;
+  }
+
   db.query(
     "SELECT * FROM user WHERE username=?",
     [user.username],
@@ -135,7 +138,8 @@ export const profile = (req, res) => {
       if (err) {
         console.log(err);
       } else {
-        res.send(result[0]);
+        const { password, ...response } = result[0];
+        res.send(response);
       }
     }
   );
