@@ -164,19 +164,28 @@ export const about = (req, res) => {
 
 export const detail = (req, res) => {
   const { username, email, address, id } = req.body;
-  db.query(
-    "UPDATE user SET  email = ?, address = ? WHERE id=?",
-    [email, address, id],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-        res.status(422).json("cập nhật thông tin thất bại");
-      }
-      if (result) {
-        res.status(200).json("cập nhật thông tin thành công");
-      }
+  db.query("SELECT * FROM user WHERE email = ?", [email], (err, result) => {
+    if (err) {
+      console.log(err);
     }
-  );
+    if (result.length > 0) {
+      res.status(422).json({ msg: "gmail đã tồn tại" });
+      return;
+    }
+    db.query(
+      "UPDATE user SET  email = ?, address = ? WHERE id=?",
+      [email, address, id],
+      (err, result) => {
+        if (err) {
+          console.log(err);
+          res.status(422).json({ msg: "cập nhật thông tin thất bại" });
+        }
+        if (result) {
+          res.status(200).json({ msg: "cập nhật thông tin thành công" });
+        }
+      }
+    );
+  });
 };
 
 export const avatar = async (req, res) => {
@@ -202,7 +211,7 @@ export const avatar = async (req, res) => {
         console.log(err);
       }
       if (result) {
-        res.status(200).json("thay đổi ảnh đại diện thành công");
+        res.status(200).json({ msg: "thay đổi ảnh đại diện thành công" });
       }
     }
   );
@@ -289,15 +298,13 @@ export const forgotPassword = async (req, res) => {
     return;
   }
   let { email, newPassword } = req.body;
-  let userFind = null;
+
   newPassword = bcrypt.hashSync(newPassword, 10);
   db.query("select * from user where email=?", [email], (err, result) => {
     if (err) {
       console.log(err);
     }
     if (result) {
-      userFind = result[0];
-
       db.query(
         "update user set password=? where email=?",
         [newPassword, email],
