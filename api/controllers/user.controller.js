@@ -147,16 +147,39 @@ export const profile = (req, res) => {
 
 export const about = (req, res) => {
   const { about, id } = req.body;
+  const authHeader = req.headers.authorization;
+  const token = authHeader.split(" ")[1];
+  let user;
+  try {
+    user = jwt.verify(token, "secret");
+  } catch (error) {
+    return res.status(422).json({ msg: "token không hợp lệ" });
+  }
   db.query(
-    "UPDATE user SET about = ? WHERE id=?",
-    [about, id],
+    "SELECT * FROM user WHERE username=?",
+    [user.username],
     (err, result) => {
       if (err) {
         console.log(err);
-        res.status(422).json("cập nhật thông tin thất bại");
       }
       if (result) {
-        res.status(200).json("cập nhật thông tin thành công");
+        user = result[0];
+        if (user.id !== Number(id)) {
+          return res.status(403).json("bạn không có quyền");
+        }
+        db.query(
+          "UPDATE user SET about = ? WHERE id=?",
+          [about, id],
+          (err, result) => {
+            if (err) {
+              console.log(err);
+              res.status(422).json("cập nhật thông tin thất bại");
+            }
+            if (result) {
+              res.status(200).json("cập nhật thông tin thành công");
+            }
+          }
+        );
       }
     }
   );
@@ -164,28 +187,57 @@ export const about = (req, res) => {
 
 export const detail = (req, res) => {
   const { username, email, address, id } = req.body;
-  db.query("SELECT * FROM user WHERE email = ?", [email], (err, result) => {
-    if (err) {
-      console.log(err);
-    }
-    if (result.length > 0) {
-      res.status(422).json({ msg: "gmail đã tồn tại" });
-      return;
-    }
-    db.query(
-      "UPDATE user SET  email = ?, address = ? WHERE id=?",
-      [email, address, id],
-      (err, result) => {
-        if (err) {
-          console.log(err);
-          res.status(422).json({ msg: "cập nhật thông tin thất bại" });
-        }
-        if (result) {
-          res.status(200).json({ msg: "cập nhật thông tin thành công" });
-        }
+  const authHeader = req.headers.authorization;
+  const token = authHeader.split(" ")[1];
+  let user;
+  try {
+    user = jwt.verify(token, "secret");
+  } catch (error) {
+    return res.status(422).json({ msg: "token không hợp lệ" });
+  }
+  db.query(
+    "SELECT * FROM user WHERE username=?",
+    [user.username],
+    (err, result) => {
+      if (err) {
+        console.log(err);
       }
-    );
-  });
+      if (result) {
+        user = result[0];
+        if (user.id !== Number(id)) {
+          return res.status(403).json("bạn không có quyền");
+        }
+        db.query(
+          "SELECT * FROM user WHERE email = ? AND NOT id = ?",
+          [email, id],
+          (err, result) => {
+            if (err) {
+              console.log(err);
+            }
+            if (result.length > 0) {
+              res.status(422).json({ msg: "gmail đã tồn tại" });
+              return;
+            }
+            db.query(
+              "UPDATE user SET  email = ?, address = ? WHERE id=?",
+              [email, address, id],
+              (err, result) => {
+                if (err) {
+                  console.log(err);
+                  res.status(422).json({ msg: "cập nhật thông tin thất bại" });
+                }
+                if (result) {
+                  res
+                    .status(200)
+                    .json({ msg: "cập nhật thông tin thành công" });
+                }
+              }
+            );
+          }
+        );
+      }
+    }
+  );
 };
 
 export const avatar = async (req, res) => {
@@ -202,7 +254,7 @@ export const avatar = async (req, res) => {
   }
   const authHeader = req.headers.authorization;
   const token = authHeader.split(" ")[1];
-  const user = jwt.verify(token, "secret");
+  let user = jwt.verify(token, "secret");
   db.query(
     "UPDATE user SET avatar = ? WHERE username = ?",
     [urlImg, user.username],
@@ -287,7 +339,18 @@ export const verifyForgotPassword = (req, res) => {
         res.status(422).json({ msg: "OTP không chính xác" });
         return;
       }
-      res.status(200).json({ msg: "success", otp: otp });
+      db.query(
+        "UPDATE user SET isForgot = ? WHERE email = ?",
+        [1, email],
+        (err, result) => {
+          if (result) {
+            res.status(200).json({ msg: "success", otp: otp });
+          }
+          if (err) {
+            console.log(err);
+          }
+        }
+      );
     }
   });
 };
@@ -305,6 +368,7 @@ export const forgotPassword = async (req, res) => {
       console.log(err);
     }
     if (result) {
+      userFind = result[0];
       db.query(
         "update user set password=? where email=?",
         [newPassword, email],
@@ -312,9 +376,11 @@ export const forgotPassword = async (req, res) => {
           if (err) {
             console.log(err);
           }
-          if (result) {
+          if (userFind.isForgot) {
             res.status(200).json({ msg: "đổi mật khẩu thành công" });
+            return;
           }
+          res.status(422).json({ msg: "đổi mật khẩu không thành công" });
         }
       );
     }

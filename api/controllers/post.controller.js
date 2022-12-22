@@ -1,4 +1,5 @@
 import { db } from "../../index.js";
+import jwt from "jsonwebtoken";
 
 export const getPostByCategory = (req, res) => {
   const { category, page } = req.params;
@@ -68,6 +69,7 @@ export const getPostDetail = (req, res) => {
 
 export const getPostDetailAdmin = (req, res) => {
   const id = req.params.id;
+
   db.query("SELECT * FROM post WHERE id =?", [id], (err, result) => {
     if (err) {
       console.log(err);
