@@ -93,10 +93,10 @@ export const login = (req, res) => {
         }
 
         let token = jwt.sign({ username: username }, "secret", {
-          expiresIn: "1 days",
+          expiresIn: "100 d",
         });
         let refreshToken = jwt.sign({ username: username }, "re-secret", {
-          expiresIn: "10 days",
+          expiresIn: "1 y",
         });
         res.send({ token, refreshToken, user });
       }

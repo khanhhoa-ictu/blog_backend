@@ -8,6 +8,7 @@ import {
   deleteComment,
   getPostDetailAdmin,
   addReply,
+  deleteCommentReply,
 } from "../controllers/post.controller.js";
 const router = express.Router();
 
@@ -27,4 +28,5 @@ router.post("/reply/add", addReply);
 
 router.delete("/comment/delete/:id", deleteComment);
 
+router.delete("/comment/reply/:id", deleteCommentReply);
 export default router;

@@ -119,6 +119,10 @@ export const getCommentByPost = (req, res) => {
 
 export const addComment = (req, res) => {
   const { post_id, user_id, content } = req.body;
+  if (!user_id) {
+    res.status(422).json("vui lòng đăng nhập để bình luận");
+    return;
+  }
   db.query(
     "INSERT INTO comments (post_id, user_id, content) VALUES (?,?,?)",
     [post_id, user_id, content],
@@ -135,6 +139,10 @@ export const addComment = (req, res) => {
 
 export const addReply = (req, res) => {
   const { content, comment_id, user_id } = req.body;
+  if (!user_id) {
+    res.status(422).json("vui lòng đăng nhập để bình luận");
+    return;
+  }
   db.query(
     "INSERT INTO reply (content, comment_id, user_id) VALUES (?,?,?)",
     [content, comment_id, user_id],
@@ -152,6 +160,19 @@ export const addReply = (req, res) => {
 export const deleteComment = (req, res) => {
   const id = req.params.id;
   db.query("DELETE FROM comments WHERE id=?", [id], (err, result) => {
+    if (err) {
+      console.log(err);
+      res.status(422).json("không tìm thấy bài viết hợp lệ");
+    }
+    if (result) {
+      res.send("delete comment success");
+    }
+  });
+};
+
+export const deleteCommentReply = (req, res) => {
+  const id = req.params.id;
+  db.query("DELETE FROM reply WHERE id=?", [id], (err, result) => {
     if (err) {
       console.log(err);
       res.status(422).json("không tìm thấy bài viết hợp lệ");
