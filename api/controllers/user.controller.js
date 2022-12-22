@@ -361,7 +361,7 @@ export const forgotPassword = async (req, res) => {
     return;
   }
   let { email, newPassword } = req.body;
-
+  let userFind = null;
   newPassword = bcrypt.hashSync(newPassword, 10);
   db.query("select * from user where email=?", [email], (err, result) => {
     if (err) {
