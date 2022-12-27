@@ -1,0 +1,19 @@
+stages:
+  # - Build
+  - DeployDevelop
+
+ 
+
+DeployDevelop:
+  stage: DeployDevelop
+  image: namdd72/amela-node:14-buster-slim
+  only: ["main"]
+  script:
+    - apt-get update && apt-get install rsync -y && apt-get install openssh-server -y
+    - mkdir -p ~/.ssh
+    - ssh-keyscan -H "$SERVER_IP" >> ~/.ssh/known_hosts
+    - echo "$PRIVATE_DEPLOY_KEY_TEST" > ~/.ssh/id_rsa
+    - chmod 700 ~/.ssh/id_rsa
+    - echo "$ENV_DEV" > .env
+    - rsync --progress -avzh -e "ssh " --rsync-path="sudo rsync" --exclude='.git' . ubuntu@$SERVER_IP:~/blog-api
+    - ssh ubuntu@$SERVER_IP "cd ~/blog-api && sudo npm install && sudo pm2 reload index.js --update-env && sudo pm2 save"
