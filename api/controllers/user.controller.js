@@ -370,8 +370,8 @@ export const forgotPassword = async (req, res) => {
     if (result) {
       userFind = result[0];
       db.query(
-        "update user set password=? where email=?",
-        [newPassword, email],
+        "update user set password=? isForgot=? where email=?",
+        [newPassword, false, email],
         (err, result) => {
           if (err) {
             console.log(err);
@@ -393,7 +393,8 @@ export const profileById = (req, res) => {
     if (err) {
       console.log(err);
     } else {
-      res.send(result[0]);
+      const { password, ...response } = result[0];
+      res.send(response);
     }
   });
 };
