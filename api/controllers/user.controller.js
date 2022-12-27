@@ -363,24 +363,26 @@ export const forgotPassword = async (req, res) => {
   let { email, newPassword } = req.body;
   let userFind = null;
   newPassword = bcrypt.hashSync(newPassword, 10);
-  db.query("select * from user where email=?", [email], (err, result) => {
+  db.query("select * from user WHERE email = ?", [email], (err, result) => {
     if (err) {
       console.log(err);
     }
     if (result) {
       userFind = result[0];
       db.query(
-        "update user set password=? where email=?",
-        [newPassword, email],
+        "UPDATE user SET password = ?, isForgot = ? WHERE email = ?",
+        [newPassword, 0, email],
         (err, result) => {
           if (err) {
             console.log(err);
           }
-          if (userFind.isForgot) {
-            res.status(200).json({ msg: "đổi mật khẩu thành công" });
-            return;
+          if (result) {
+            if (userFind.isForgot) {
+              res.status(200).json({ msg: "đổi mật khẩu thành công" });
+              return;
+            }
+            res.status(422).json({ msg: "đổi mật khẩu không thành công" });
           }
-          res.status(422).json({ msg: "đổi mật khẩu không thành công" });
         }
       );
     }
@@ -393,7 +395,8 @@ export const profileById = (req, res) => {
     if (err) {
       console.log(err);
     } else {
-      res.send(result[0]);
+      const { password, ...response } = result[0];
+      res.send(response);
     }
   });
 };
