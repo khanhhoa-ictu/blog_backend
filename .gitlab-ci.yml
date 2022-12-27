@@ -16,4 +16,4 @@ DeployDevelop:
     - chmod 700 ~/.ssh/id_rsa
     - echo "$ENV_DEV" > .env
     - rsync --progress -avzh -e "ssh " --rsync-path="sudo rsync" --exclude='.git' . ubuntu@$SERVER_IP:~/blog-api
-    - ssh ubuntu@$SERVER_IP "cd ~/blog-api && sudo npm install && pm2 reload index.js --update-env && pm2 save"
+    - ssh ubuntu@$SERVER_IP "cd ~/blog-api && sudo npm install && sudo pm2 reload index.js --update-env && sudo pm2 save"
