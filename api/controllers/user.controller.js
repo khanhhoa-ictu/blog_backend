@@ -370,8 +370,8 @@ export const forgotPassword = async (req, res) => {
     if (result) {
       userFind = result[0];
       db.query(
-        "update user set password=? isForgot=? where email=?",
-        [newPassword, false, email],
+        "update user set password=?, isForgot=? where email=?",
+        [newPassword, 0, email],
         (err, result) => {
           if (err) {
             console.log(err);
