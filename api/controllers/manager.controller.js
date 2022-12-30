@@ -268,3 +268,116 @@ export const avatar = async (req, res) => {
     }
   );
 };
+
+export const addCategory = (req, res) => {
+  const { name_category } = req.body;
+  const authHeader = req.headers.authorization;
+  const token = authHeader.split(" ")[1];
+  let user;
+  try {
+    user = jwt.verify(token, "secret");
+  } catch (error) {
+    return res.status(422).json({ msg: "token không hợp lệ" });
+  }
+  db.query(
+    "SELECT * FROM user WHERE username=?",
+    [user.username],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      }
+      if (result) {
+        user = result[0];
+        if (user.role !== "admin") {
+          return res.status(403).json("bạn không có quyền");
+        }
+        db.query(
+          "INSERT INTO category (name_category) VALUES (?)",
+          [name_category],
+          (err, result) => {
+            if (err) {
+              console.log(err);
+            }
+            if (result) {
+              res.send("add category success");
+            }
+          }
+        );
+      }
+    }
+  );
+};
+
+export const editCategory = (req, res) => {
+  const { name_category, id } = req.body;
+  const authHeader = req.headers.authorization;
+  const token = authHeader.split(" ")[1];
+  let user;
+  try {
+    user = jwt.verify(token, "secret");
+  } catch (error) {
+    return res.status(422).json({ msg: "token không hợp lệ" });
+  }
+  db.query(
+    "SELECT * FROM user WHERE username=?",
+    [user.username],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      }
+      if (result) {
+        user = result[0];
+        if (user.role !== "admin") {
+          return res.status(403).json("bạn không có quyền");
+        }
+        db.query(
+          "UPDATE category SET name_category = ? WHERE id = ?",
+          [name_category, id],
+          (err, result) => {
+            if (err) {
+              console.log(err);
+            }
+            if (result) {
+              res.send("update category success");
+            }
+          }
+        );
+      }
+    }
+  );
+};
+
+export const deleteCategory = (req, res) => {
+  const id = req.params.id;
+  const authHeader = req.headers.authorization;
+  const token = authHeader.split(" ")[1];
+  let user;
+  try {
+    user = jwt.verify(token, "secret");
+  } catch (error) {
+    return res.status(422).json({ msg: "token không hợp lệ" });
+  }
+  db.query(
+    "SELECT * FROM user WHERE username=?",
+    [user.username],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      }
+      if (result) {
+        user = result[0];
+        if (user.role !== "admin") {
+          return res.status(403).json("bạn không có quyền");
+        }
+        db.query("DELETE FROM category WHERE id=?", [id], (err, result) => {
+          if (err) {
+            console.log(err);
+          }
+          if (result) {
+            res.send(result);
+          }
+        });
+      }
+    }
+  );
+};

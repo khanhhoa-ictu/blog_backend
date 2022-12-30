@@ -8,6 +8,9 @@ import {
   editPost,
   editAbout,
   avatar,
+  addCategory,
+  editCategory,
+  deleteCategory,
 } from "../controllers/manager.controller.js";
 import multer from "multer";
 const storage = multer.diskStorage({
@@ -28,4 +31,8 @@ router.delete("/manager/user/:id", deleteUser);
 router.put("/manager/editPost", editPost);
 router.put("/manager/editAbout", editAbout);
 router.put("/manager/about/avatar", upload.single("file"), avatar);
+router.post("/manager/addCategory", addCategory);
+router.put("/manager/editCategory", editCategory);
+router.delete("/manager/category/delete/:id", deleteCategory);
+
 export default router;
