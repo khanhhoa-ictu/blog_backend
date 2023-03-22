@@ -9,10 +9,13 @@ import {
   getPostDetailAdmin,
   addReply,
   deleteCommentReply,
+  getCategory,
 } from "../controllers/post.controller.js";
 const router = express.Router();
 
 router.get("/getPost/category/:category/:page", getPostByCategory);
+
+router.get("/category", getCategory);
 
 router.get("/getPost/:page", getListPost);
 
