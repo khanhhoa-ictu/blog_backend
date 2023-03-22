@@ -182,3 +182,14 @@ export const deleteCommentReply = (req, res) => {
     }
   });
 };
+
+export const getCategory = (req, res) => {
+  db.query("SELECT * FROM category", (err, result) => {
+    if (err) {
+      console.log(err);
+    }
+    if (result) {
+      res.send(result);
+    }
+  });
+};
