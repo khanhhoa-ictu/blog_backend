@@ -40,8 +40,8 @@ export const getListPost = (req, res) => {
 };
 
 export const getPostDetail = (req, res) => {
-  const id = req.params.id;
-  db.query("SELECT * FROM post WHERE id =?", [id], (err, result) => {
+  const slug = req.params.slug;
+  db.query("SELECT * FROM post WHERE slug =?", [slug], (err, result) => {
     if (err) {
       console.log(err);
     }
@@ -52,8 +52,8 @@ export const getPostDetail = (req, res) => {
         return;
       }
       db.query(
-        "UPDATE post SET view = ? WHERE id = ?",
-        [post.view + 1, post.id],
+        "UPDATE post SET view = ? WHERE slug = ?",
+        [post.view + 1, post.slug],
         (err, result) => {
           if (err) {
             console.log(err);
@@ -185,6 +185,17 @@ export const deleteCommentReply = (req, res) => {
 
 export const getCategory = (req, res) => {
   db.query("SELECT * FROM category", (err, result) => {
+    if (err) {
+      console.log(err);
+    }
+    if (result) {
+      res.send(result);
+    }
+  });
+};
+
+export const getAllPost = (req, res) => {
+  db.query("SELECT id, title, slug FROM post", (err, result) => {
     if (err) {
       console.log(err);
     }

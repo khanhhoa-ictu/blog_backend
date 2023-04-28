@@ -20,7 +20,8 @@ const uploadImg = async (path) => {
 };
 
 export const addPost = (req, res) => {
-  const { title, content, summary, thumbnail, category_id } = req.body;
+  const { title, content, summary, thumbnail, category_id, slug } = req.body;
+
   const authHeader = req.headers.authorization;
   const token = authHeader.split(" ")[1];
   let user;
@@ -42,8 +43,8 @@ export const addPost = (req, res) => {
           return res.status(403).json("bạn không có quyền");
         }
         db.query(
-          "INSERT INTO post (title, content, summary, thumbnail, category_id) VALUES (?,?,?,?,?)",
-          [title, content, summary, thumbnail, category_id],
+          "INSERT INTO post (title, content, summary, thumbnail, category_id, slug) VALUES (?,?,?,?,?,?)",
+          [title, content, summary, thumbnail, category_id, slug],
           (err, result) => {
             if (err) {
               console.log(err);
@@ -188,11 +189,11 @@ export const deleteUser = (req, res) => {
 };
 
 export const editPost = (req, res) => {
-  const { title, content, summary, thumbnail, category_id, id } = req.body;
-
+  const { title, content, summary, thumbnail, category_id, slug, id } =
+    req.body;
   db.query(
-    "UPDATE post SET title = ?, content = ?, summary = ?, thumbnail = ?, category_id = ? WHERE id = ?  ",
-    [title, content, summary, thumbnail, category_id, id],
+    "UPDATE post SET title = ?, content = ?, summary = ?, thumbnail = ?, category_id = ?, slug = ? WHERE id = ?  ",
+    [title, content, summary, thumbnail, category_id, slug, id],
     (err, result) => {
       if (err) {
         console.log(err);

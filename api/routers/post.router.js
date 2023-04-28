@@ -10,6 +10,7 @@ import {
   addReply,
   deleteCommentReply,
   getCategory,
+  getAllPost,
 } from "../controllers/post.controller.js";
 const router = express.Router();
 
@@ -19,7 +20,7 @@ router.get("/category", getCategory);
 
 router.get("/getPost/:page", getListPost);
 
-router.get("/getPostDetail/:id", getPostDetail);
+router.get("/getPostDetail/:slug", getPostDetail);
 
 router.get("/postDetail/admin/:id", getPostDetailAdmin);
 
@@ -32,4 +33,7 @@ router.post("/reply/add", addReply);
 router.delete("/comment/delete/:id", deleteComment);
 
 router.delete("/comment/reply/:id", deleteCommentReply);
+
+router.get("/post/getAllPost", getAllPost);
+
 export default router;
