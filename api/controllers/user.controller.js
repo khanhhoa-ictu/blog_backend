@@ -121,7 +121,8 @@ export const refreshToken = (req, res) => {
 };
 
 export const profile = (req, res) => {
-  const authHeader = req.headers.authorization;
+  const authHeader = req?.headers?.authorization;
+  if (!authHeader) return res.status(404).json({ msg: "login fail" });
   const token = authHeader.split(" ")[1];
   let user;
   try {
